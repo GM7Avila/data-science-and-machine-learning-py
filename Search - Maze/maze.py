@@ -31,13 +31,15 @@ class StackFrontier():
 
 # Fronteira - implementação por fila (BFS)     
 class QueueFrontier(StackFrontier):
-    
+
     # remove e retorna o primeiro nó - FIFO
     def remove(self):
         if self.empty():
             raise Exception("empty frontier")
         else:
             node = self.frontier[0]
+            self.frontier = self.frontier[1:]
+            return node
             
 class Maze():
 
@@ -132,7 +134,8 @@ class Maze():
                 result.append((action, (r, c)))
         return result
     
-    def solve(self):
+    def solve_dfs(self):
+        print("Solving with Deep-First Search...")
         # numero de estados explorados
         self.num_explored = 0
 
@@ -184,7 +187,63 @@ class Maze():
                 if not frontier.contains_state(state) and state not in self.explored:
                     child = Node(state=state, parent=node, action=action)
                     frontier.add(child)
-                    
+                                   
+    def solve_bfs(self):
+        print("Solving with Breadth-First Search...")
+        
+        # numero de estados explorados
+        self.num_explored = 0
+
+        # cria o node inicial
+        start = Node(state=self.start, parent=None, action=None)
+        
+        # inicializa a fronteira (fila) e adiciona o node 
+        frontier = QueueFrontier()
+        frontier.add(start)
+
+        # cria um set de explorados
+        self.explored = set()
+        
+
+        # loop - buscando por solução
+        while True:
+
+            # se não há nada na fronteira então não a solução
+            if frontier.empty():
+                raise Exception("no solution")
+
+            # pega um node da fronteira e incrementa o contador de explorados
+            node = frontier.remove()
+            self.num_explored += 1
+
+            # armazenando a solução se o nó atual é o goal (i,j)
+            if node.state == self.goal:
+                
+                actions = []
+                cells = []
+                
+                # backtracking do goal ao inicial
+                    # cada nó armazena o nó pai que o levou até certo ponto
+                while node.parent is not None:
+                    actions.append(node.action)
+                    cells.append(node.state)
+                    node = node.parent
+                actions.reverse()
+                cells.reverse()
+                self.solution = (actions, cells)
+                return
+
+            # move o nó para o set de explorados
+            self.explored.add(node.state)
+
+            # adiciona os vizinhos a fronteira
+            for action, state in self.neighbors(node.state):
+                
+                # se o nó não foi explorado e não esta na fronteira
+                if not frontier.contains_state(state) and state not in self.explored:
+                    child = Node(state=state, parent=node, action=action)
+                    frontier.add(child)
+
     def output_image(self, filename, show_solution=True, show_explored=False):
         from PIL import Image, ImageDraw
         cell_size = 50
@@ -239,12 +298,19 @@ class Maze():
 if len(sys.argv) != 2:
     sys.exit("Usage: python maze.py maze.txt")
 
+# Executando DFS
 m = Maze(sys.argv[1])
 print("Maze:")
 m.print()
-print("Solving...")
-m.solve()
+m.solve_dfs()
 print("States Explored:", m.num_explored)
 print("Solution:")
 m.print()
-m.output_image("maze.png", show_explored=True)
+m.output_image("maze_dfs.png", show_explored=True)
+
+# Executando BFS
+m.solve_bfs()
+print("States Explored:", m.num_explored)
+print("Solution:")
+m.print()
+m.output_image("maze_bfs.png", show_explored=True)
