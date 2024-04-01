@@ -13,6 +13,5 @@ Você precisara de um gerenciador de pacotes para instalar as bibliotecas penden
 
 ## Conteúdos
 1. Regressão Linear
-2.
-3.
-4.
+2. Search
+    2.1 Deep-First Search : Maze
